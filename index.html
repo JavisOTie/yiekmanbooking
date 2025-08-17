@@ -1,0 +1,3833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Room Booking System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #f8f9fc;
+            --accent-color: #2e59d9;
+            --text-color: #5a5c69;
+            --success-color: #1cc88a;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --sidebar-width: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            transition: all 0.3s;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            position: relative;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .menu-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu-icon {
+            margin-right: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .submenu {
+            display: none;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .submenu.show {
+            display: block;
+        }
+
+        .submenu-link {
+            padding: 0.5rem 1.5rem 0.5rem 3rem;
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .submenu-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .submenu-link.active {
+            color: white;
+        }
+
+        .menu-arrow {
+            position: absolute;
+            right: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .menu-arrow.rotate {
+            transform: rotate(90deg);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 1rem;
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #858796;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Dashboard Cards */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(180deg, #f8f9fc 0%, #e2e6f0 100%);
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .card-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            opacity: 0.3;
+            position: absolute;
+            right: 1.25rem;
+            top: 1.25rem;
+        }
+
+        .primary-card {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .success-card {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .warning-card {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .danger-card {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        /* Charts */
+        .chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            padding: 1.25rem;
+        }
+
+        .chart-header {
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        /* Forms */
+        .form-container {
+            background: white;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-title {
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.35rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #17a673;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #be2617;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dda20a;
+        }
+
+        /* Tables */
+        .table-container {
+            background: white;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .table th {
+            background: #f8f9fc;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .table tr:hover {
+            background: #f8f9fc;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+
+        /* Export Buttons */
+        .export-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.35rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e3e6f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e3e6f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        /* Login Page */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .login-body {
+            padding: 2rem;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .login-footer {
+            padding: 1rem;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+
+            .sidebar.show {
+                width: var(--sidebar-width);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+
+            .table-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Toggle Button */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        /* Validation */
+        .is-invalid {
+            border-color: var(--danger-color);
+        }
+
+        .invalid-feedback {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .is-invalid + .invalid-feedback {
+            display: block;
+        }
+		/* Add to the existing CSS */
+#logoutBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-utensils menu-icon"></i> Restaurant Booking</h3>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item">
+                <a href="#" class="menu-link active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt menu-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="#" class="menu-link" data-section="bookings">
+                    <i class="fas fa-calendar-check menu-icon"></i>
+                    <span>Bookings</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="#" class="menu-link" data-section="rooms">
+                    <i class="fas fa-door-open menu-icon"></i>
+                    <span>Rooms</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="#" class="menu-link" data-section="customers">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span>Customers</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="#" class="menu-link" data-section="reports">
+                    <i class="fas fa-chart-bar menu-icon"></i>
+                    <span>Reports</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="#" class="menu-link" data-section="settings">
+                    <i class="fas fa-cog menu-icon"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="page-title">
+                <h1 id="pageTitle">Dashboard</h1>
+            </div>
+           <!-- In the top-nav div, replace the user-menu section with this: -->
+<div class="user-menu">
+    <div class="user-info">
+        <div class="user-name" id="loggedInUserName">Admin User</div>
+        <div class="user-role" id="loggedInUserRole">Administrator</div>
+    </div>
+    <div class="user-avatar" id="loggedInUserAvatar">AU</div>
+    <button class="btn btn-sm btn-danger" id="logoutBtn" style="margin-left: 10px;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+</div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div class="content-section" id="dashboard">
+            <!-- Cards -->
+            <div class="card-container">
+                <div class="card primary-card">
+                    <div class="card-header">Total Bookings</div>
+                    <div class="card-body">
+                        <div class="card-value" id="totalBookings">0</div>
+                        <div class="card-text">This Month</div>
+                        <i class="fas fa-calendar card-icon"></i>
+                    </div>
+                </div>
+                <div class="card success-card">
+                    <div class="card-header">Available Rooms</div>
+                    <div class="card-body">
+                        <div class="card-value" id="availableRooms">0</div>
+                        <div class="card-text">Out of <span id="totalRooms">0</span> rooms</div>
+                        <i class="fas fa-door-closed card-icon"></i>
+                    </div>
+                </div>
+                <div class="card warning-card">
+                    <div class="card-header">Pending Bookings</div>
+                    <div class="card-body">
+                        <div class="card-value" id="pendingBookings">0</div>
+                        <div class="card-text">Require Approval</div>
+                        <i class="fas fa-clock card-icon"></i>
+                    </div>
+                </div>
+                <div class="card danger-card">
+                    <div class="card-header">Revenue</div>
+                    <div class="card-body">
+                        <div class="card-value" id="totalRevenue">$0</div>
+                        <div class="card-text">This Month</div>
+                        <i class="fas fa-dollar-sign card-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="chart-container">
+                <div class="chart-card">
+                    <div class="chart-header">Bookings Overview</div>
+                    <canvas id="bookingsChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">Room Occupancy</div>
+                    <canvas id="roomsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Bookings -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Recent Bookings</h3>
+                </div>
+                <table class="table" id="recentBookingsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Room</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bookings Section -->
+        <div class="content-section" id="bookings" style="display: none;">
+            <div class="form-container">
+                <h3 class="form-title">Add New Booking</h3>
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label for="bookingCustomer" class="form-label">Customer</label>
+                        <select id="bookingCustomer" class="form-control" required>
+                            <option value="">Select Customer</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a customer</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingRoom" class="form-label">Room</label>
+                        <select id="bookingRoom" class="form-control" required>
+                            <option value="">Select Room</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a room</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingDate" class="form-label">Date</label>
+                        <input type="date" id="bookingDate" class="form-control" required>
+                        <div class="invalid-feedback">Please select a date</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingTime" class="form-label">Time</label>
+                        <input type="time" id="bookingTime" class="form-control" required>
+                        <div class="invalid-feedback">Please select a time</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingGuests" class="form-label">Number of Guests</label>
+                        <input type="number" id="bookingGuests" class="form-control" min="1" required>
+                        <div class="invalid-feedback">Please enter number of guests</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingStatus" class="form-label">Status</label>
+                        <select id="bookingStatus" class="form-control" required>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="pending">Pending</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Booking</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <div class="export-buttons">
+                    <button class="btn btn-success" id="exportExcelBookings">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button class="btn btn-danger" id="exportPdfBookings">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                    <button class="btn btn-warning" id="exportSqlBookings">
+                        <i class="fas fa-database"></i> Export SQL
+                    </button>
+                    <button class="btn btn-primary" id="editSelectedBookings" disabled>
+                        <i class="fas fa-edit"></i> Edit Selected
+                    </button>
+                    <button class="btn btn-danger" id="deleteSelectedBookings" disabled>
+                        <i class="fas fa-trash"></i> Delete Selected
+                    </button>
+                </div>
+                <table class="table" id="bookingsTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllBookings">
+                            </th>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Room</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Guests</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Rooms Section -->
+        <div class="content-section" id="rooms" style="display: none;">
+            <div class="form-container">
+                <h3 class="form-title">Add New Room</h3>
+                <form id="roomForm">
+                    <div class="form-group">
+                        <label for="roomName" class="form-label">Room Name</label>
+                        <input type="text" id="roomName" class="form-control" required>
+                        <div class="invalid-feedback">Please enter room name</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomCapacity" class="form-label">Capacity</label>
+                        <input type="number" id="roomCapacity" class="form-control" min="1" required>
+                        <div class="invalid-feedback">Please enter capacity</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomType" class="form-label">Type</label>
+                        <select id="roomType" class="form-control" required>
+                            <option value="private">Private</option>
+                            <option value="shared">Shared</option>
+                            <option value="vip">VIP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomPrice" class="form-label">Price per Hour ($)</label>
+                        <input type="number" id="roomPrice" class="form-control" min="0" step="0.01" required>
+                        <div class="invalid-feedback">Please enter price</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomStatus" class="form-label">Status</label>
+                        <select id="roomStatus" class="form-control" required>
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Room</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <div class="export-buttons">
+                    <button class="btn btn-success" id="exportExcelRooms">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button class="btn btn-danger" id="exportPdfRooms">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                    <button class="btn btn-warning" id="exportSqlRooms">
+                        <i class="fas fa-database"></i> Export SQL
+                    </button>
+                    <button class="btn btn-primary" id="editSelectedRooms" disabled>
+                        <i class="fas fa-edit"></i> Edit Selected
+                    </button>
+                    <button class="btn btn-danger" id="deleteSelectedRooms" disabled>
+                        <i class="fas fa-trash"></i> Delete Selected
+                    </button>
+                </div>
+                <table class="table" id="roomsTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllRooms">
+                            </th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Capacity</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customers Section -->
+        <div class="content-section" id="customers" style="display: none;">
+            <div class="form-container">
+                <h3 class="form-title">Add New Customer</h3>
+                <form id="customerForm">
+                    <div class="form-group">
+                        <label for="customerName" class="form-label">Full Name</label>
+                        <input type="text" id="customerName" class="form-control" required>
+                        <div class="invalid-feedback">Please enter full name</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerEmail" class="form-label">Email</label>
+                        <input type="email" id="customerEmail" class="form-control" required>
+                        <div class="invalid-feedback">Please enter a valid email</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone" class="form-label">Phone</label>
+                        <input type="tel" id="customerPhone" class="form-control" required>
+                        <div class="invalid-feedback">Please enter phone number</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerAddress" class="form-label">Address</label>
+                        <textarea id="customerAddress" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Customer</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <div class="export-buttons">
+                    <button class="btn btn-success" id="exportExcelCustomers">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button class="btn btn-danger" id="exportPdfCustomers">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                    <button class="btn btn-warning" id="exportSqlCustomers">
+                        <i class="fas fa-database"></i> Export SQL
+                    </button>
+                    <button class="btn btn-primary" id="editSelectedCustomers" disabled>
+                        <i class="fas fa-edit"></i> Edit Selected
+                    </button>
+                    <button class="btn btn-danger" id="deleteSelectedCustomers" disabled>
+                        <i class="fas fa-trash"></i> Delete Selected
+                    </button>
+                </div>
+                <table class="table" id="customersTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllCustomers">
+                            </th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="content-section" id="reports" style="display: none;">
+            <div class="form-container">
+                <h3 class="form-title">Generate Report</h3>
+                <form id="reportForm">
+                    <div class="form-group">
+                        <label for="reportType" class="form-label">Report Type</label>
+                        <select id="reportType" class="form-control" required>
+                            <option value="booking">Booking Report</option>
+                            <option value="revenue">Revenue Report</option>
+                            <option value="occupancy">Room Occupancy</option>
+                            <option value="customer">Customer Report</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportPeriod" class="form-label">Period</label>
+                        <select id="reportPeriod" class="form-control" required>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customDateRange" style="display: none;">
+                        <div class="form-row" style="display: flex; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <label for="reportStartDate" class="form-label">Start Date</label>
+                                <input type="date" id="reportStartDate" class="form-control">
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="reportEndDate" class="form-label">End Date</label>
+                                <input type="date" id="reportEndDate" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Report</button>
+                </form>
+            </div>
+
+            <div class="table-container" id="reportResults" style="display: none;">
+                <div class="export-buttons">
+                    <button class="btn btn-success" id="exportExcelReport">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button class="btn btn-danger" id="exportPdfReport">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                </div>
+                <div id="reportContent">
+                    <!-- Report content will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="content-section" id="settings" style="display: none;">
+            <div class="form-container">
+                <h3 class="form-title">System Settings</h3>
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="restaurantName" class="form-label">Restaurant Name</label>
+                        <input type="text" id="restaurantName" class="form-control" required>
+                        <div class="invalid-feedback">Please enter restaurant name</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="restaurantAddress" class="form-label">Address</label>
+                        <textarea id="restaurantAddress" class="form-control" rows="3" required></textarea>
+                        <div class="invalid-feedback">Please enter address</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="restaurantPhone" class="form-label">Phone</label>
+                        <input type="tel" id="restaurantPhone" class="form-control" required>
+                        <div class="invalid-feedback">Please enter phone number</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="restaurantEmail" class="form-label">Email</label>
+                        <input type="email" id="restaurantEmail" class="form-control" required>
+                        <div class="invalid-feedback">Please enter a valid email</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="timezone" class="form-label">Timezone</label>
+                        <select id="timezone" class="form-control" required>
+                            <option value="UTC">UTC</option>
+                            <option value="EST">Eastern Time (EST)</option>
+                            <option value="CST">Central Time (CST)</option>
+                            <option value="MST">Mountain Time (MST)</option>
+                            <option value="PST" selected>Pacific Time (PST)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="businessHours" class="form-label">Business Hours</label>
+                        <div class="form-row" style="display: flex; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <input type="time" id="openTime" class="form-control" required>
+                            </div>
+                            <span style="align-self: center;">to</span>
+                            <div style="flex: 1;">
+                                <input type="time" id="closeTime" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </form>
+            </div>
+
+            <div class="form-container">
+                <h3 class="form-title">User Management</h3>
+                <form id="userForm">
+                    <div class="form-group">
+                        <label for="userFullName" class="form-label">Full Name</label>
+                        <input type="text" id="userFullName" class="form-control" required>
+                        <div class="invalid-feedback">Please enter full name</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail" class="form-label">Email</label>
+                        <input type="email" id="userEmail" class="form-control" required>
+                        <div class="invalid-feedback">Please enter a valid email</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole" class="form-label">Role</label>
+                        <select id="userRole" class="form-control" required>
+                            <option value="admin">Administrator</option>
+                            <option value="manager">Manager</option>
+                            <option value="staff">Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="userPassword" class="form-label">Password</label>
+                        <input type="password" id="userPassword" class="form-control" required>
+                        <div class="invalid-feedback">Please enter password</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userConfirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" id="userConfirmPassword" class="form-control" required>
+                        <div class="invalid-feedback">Passwords do not match</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Admin User</td>
+                            <td>admin@restaurant.com</td>
+                            <td>Administrator</td>
+                            <td>2023-06-15 14:30</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm">Edit</button>
+                                <button class="btn btn-danger btn-sm">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalTitle">Edit Record</h5>
+                <button class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <div class="modal-body" id="editModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelEdit">Cancel</button>
+                <button class="btn btn-primary" id="saveEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Page (initially hidden) -->
+    <div class="login-container" id="loginPage" style="display: none;">
+        <div class="login-card">
+            <div class="login-header">
+                <h2><i class="fas fa-utensils"></i> Restaurant Booking</h2>
+            </div>
+            <div class="login-body">
+                <h3 class="login-title">Login to Your Account</h3>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail" class="form-label">Email</label>
+                        <input type="email" id="loginEmail" class="form-control" required>
+                        <div class="invalid-feedback">Please enter a valid email</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" required>
+                        <div class="invalid-feedback">Please enter password</div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                    </div>
+                </form>
+            </div>
+            <div class="login-footer">
+                Don't have an account? <a href="#" id="showRegister">Register</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Page (initially hidden) -->
+    <div class="login-container" id="registerPage" style="display: none;">
+        <div class="login-card">
+            <div class="login-header">
+                <h2><i class="fas fa-utensils"></i> Restaurant Booking</h2>
+            </div>
+            <div class="login-body">
+                <h3 class="login-title">Create New Account</h3>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="registerName" class="form-label">Full Name</label>
+                        <input type="text" id="registerName" class="form-control" required>
+                        <div class="invalid-feedback">Please enter your name</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail" class="form-label">Email</label>
+                        <input type="email" id="registerEmail" class="form-control" required>
+                        <div class="invalid-feedback">Please enter a valid email</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword" class="form-label">Password</label>
+                        <input type="password" id="registerPassword" class="form-control" required minlength="6">
+                        <div class="invalid-feedback">Password must be at least 6 characters</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" id="registerConfirmPassword" class="form-control" required>
+                        <div class="invalid-feedback">Passwords do not match</div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+                    </div>
+                </form>
+            </div>
+            <div class="login-footer">
+                Already have an account? <a href="#" id="showLogin">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database structure and initial data
+        const database = {
+            // Users table
+            users: [
+                {
+                    id: 1,
+                    name: "Admin User",
+                    email: "admin@restaurant.com",
+                    password: "admin123",
+                    role: "admin",
+                    lastLogin: "2023-06-15 14:30"
+                }
+            ],
+            
+            // Customers table
+            customers: [
+                {
+                    id: 1,
+                    name: "John Doe",
+                    email: "john@example.com",
+                    phone: "1234567890",
+                    address: "123 Main St, City"
+                },
+                {
+                    id: 2,
+                    name: "Jane Smith",
+                    email: "jane@example.com",
+                    phone: "9876543210",
+                    address: "456 Oak Ave, Town"
+                }
+            ],
+            
+            // Rooms table
+            rooms: [
+                {
+                    id: 1,
+                    name: "Private Room 1",
+                    capacity: 4,
+                    type: "private",
+                    price: 50,
+                    status: "available"
+                },
+                {
+                    id: 2,
+                    name: "VIP Lounge",
+                    capacity: 10,
+                    type: "vip",
+                    price: 150,
+                    status: "available"
+                },
+                {
+                    id: 3,
+                    name: "Shared Space A",
+                    capacity: 8,
+                    type: "shared",
+                    price: 30,
+                    status: "available"
+                }
+            ],
+            
+            // Bookings table
+            bookings: [
+                {
+                    id: 1,
+                    customerId: 1,
+                    roomId: 1,
+                    date: "2023-06-20",
+                    time: "18:00",
+                    guests: 3,
+                    status: "confirmed",
+                    createdAt: "2023-06-10 09:15"
+                },
+                {
+                    id: 2,
+                    customerId: 2,
+                    roomId: 2,
+                    date: "2023-06-22",
+                    time: "19:30",
+                    guests: 6,
+                    status: "pending",
+                    createdAt: "2023-06-12 14:45"
+                }
+            ],
+            
+            // Settings
+            settings: {
+                restaurantName: "Gourmet Restaurant",
+                address: "789 Food Street, City",
+                phone: "555-123-4567",
+                email: "info@gourmet.com",
+                timezone: "PST",
+                openTime: "09:00",
+                closeTime: "22:00"
+            },
+            
+            // Next IDs for auto-increment
+            nextIds: {
+                customers: 3,
+                rooms: 4,
+                bookings: 3,
+                users: 2
+            }
+        };
+
+        // Check if database exists in localStorage, if not save initial data
+        if (!localStorage.getItem('restaurantBookingDB')) {
+            localStorage.setItem('restaurantBookingDB', JSON.stringify(database));
+        }
+
+        // Get database from localStorage
+        let db = JSON.parse(localStorage.getItem('restaurantBookingDB'));
+
+        // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menuToggle');
+        const mainContent = document.getElementById('mainContent');
+        const pageTitle = document.getElementById('pageTitle');
+        const contentSections = document.querySelectorAll('.content-section');
+        const menuLinks = document.querySelectorAll('.menu-link');
+        
+        // Login/Register elements
+        const loginPage = document.getElementById('loginPage');
+        const registerPage = document.getElementById('registerPage');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        
+        // Dashboard elements
+        const totalBookingsEl = document.getElementById('totalBookings');
+        const availableRoomsEl = document.getElementById('availableRooms');
+        const totalRoomsEl = document.getElementById('totalRooms');
+        const pendingBookingsEl = document.getElementById('pendingBookings');
+        const totalRevenueEl = document.getElementById('totalRevenue');
+        const recentBookingsTable = document.getElementById('recentBookingsTable').getElementsByTagName('tbody')[0];
+        
+        // Bookings elements
+        const bookingForm = document.getElementById('bookingForm');
+        const bookingCustomer = document.getElementById('bookingCustomer');
+        const bookingRoom = document.getElementById('bookingRoom');
+        const bookingDate = document.getElementById('bookingDate');
+        const bookingTime = document.getElementById('bookingTime');
+        const bookingGuests = document.getElementById('bookingGuests');
+        const bookingStatus = document.getElementById('bookingStatus');
+        const bookingsTable = document.getElementById('bookingsTable').getElementsByTagName('tbody')[0];
+        const selectAllBookings = document.getElementById('selectAllBookings');
+        const editSelectedBookings = document.getElementById('editSelectedBookings');
+        const deleteSelectedBookings = document.getElementById('deleteSelectedBookings');
+        const exportExcelBookings = document.getElementById('exportExcelBookings');
+        const exportPdfBookings = document.getElementById('exportPdfBookings');
+        const exportSqlBookings = document.getElementById('exportSqlBookings');
+        
+        // Rooms elements
+        const roomForm = document.getElementById('roomForm');
+        const roomName = document.getElementById('roomName');
+        const roomCapacity = document.getElementById('roomCapacity');
+        const roomType = document.getElementById('roomType');
+        const roomPrice = document.getElementById('roomPrice');
+        const roomStatus = document.getElementById('roomStatus');
+        const roomsTable = document.getElementById('roomsTable').getElementsByTagName('tbody')[0];
+        const selectAllRooms = document.getElementById('selectAllRooms');
+        const editSelectedRooms = document.getElementById('editSelectedRooms');
+        const deleteSelectedRooms = document.getElementById('deleteSelectedRooms');
+        const exportExcelRooms = document.getElementById('exportExcelRooms');
+        const exportPdfRooms = document.getElementById('exportPdfRooms');
+        const exportSqlRooms = document.getElementById('exportSqlRooms');
+        
+        // Customers elements
+        const customerForm = document.getElementById('customerForm');
+        const customerName = document.getElementById('customerName');
+        const customerEmail = document.getElementById('customerEmail');
+        const customerPhone = document.getElementById('customerPhone');
+        const customerAddress = document.getElementById('customerAddress');
+        const customersTable = document.getElementById('customersTable').getElementsByTagName('tbody')[0];
+        const selectAllCustomers = document.getElementById('selectAllCustomers');
+        const editSelectedCustomers = document.getElementById('editSelectedCustomers');
+        const deleteSelectedCustomers = document.getElementById('deleteSelectedCustomers');
+        const exportExcelCustomers = document.getElementById('exportExcelCustomers');
+        const exportPdfCustomers = document.getElementById('exportPdfCustomers');
+        const exportSqlCustomers = document.getElementById('exportSqlCustomers');
+        
+        // Reports elements
+        const reportForm = document.getElementById('reportForm');
+        const reportType = document.getElementById('reportType');
+        const reportPeriod = document.getElementById('reportPeriod');
+        const customDateRange = document.getElementById('customDateRange');
+        const reportStartDate = document.getElementById('reportStartDate');
+        const reportEndDate = document.getElementById('reportEndDate');
+        const reportResults = document.getElementById('reportResults');
+        const reportContent = document.getElementById('reportContent');
+        const exportExcelReport = document.getElementById('exportExcelReport');
+        const exportPdfReport = document.getElementById('exportPdfReport');
+        
+        // Settings elements
+        const settingsForm = document.getElementById('settingsForm');
+        const restaurantName = document.getElementById('restaurantName');
+        const restaurantAddress = document.getElementById('restaurantAddress');
+        const restaurantPhone = document.getElementById('restaurantPhone');
+        const restaurantEmail = document.getElementById('restaurantEmail');
+        const timezone = document.getElementById('timezone');
+        const openTime = document.getElementById('openTime');
+        const closeTime = document.getElementById('closeTime');
+        const userForm = document.getElementById('userForm');
+        const userFullName = document.getElementById('userFullName');
+        const userEmail = document.getElementById('userEmail');
+        const userRole = document.getElementById('userRole');
+        const userPassword = document.getElementById('userPassword');
+        const userConfirmPassword = document.getElementById('userConfirmPassword');
+        const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
+        
+        // Edit modal elements
+        const editModal = document.getElementById('editModal');
+        const editModalTitle = document.getElementById('editModalTitle');
+        const editModalBody = document.getElementById('editModalBody');
+        const closeEditModal = document.getElementById('closeEditModal');
+        const cancelEdit = document.getElementById('cancelEdit');
+        const saveEdit = document.getElementById('saveEdit');
+        
+        // Charts
+        let bookingsChart, roomsChart;
+        
+        // Current user and edit state
+        let currentUser = null;
+        let currentEditId = null;
+        let currentEditTable = null;
+
+        // Initialize the application
+        function init() {
+            // Check if user is logged in
+            currentUser = localStorage.getItem('currentUser');
+            
+            if (currentUser) {
+                currentUser = JSON.parse(currentUser);
+                showMainApp();
+            } else {
+                showLoginPage();
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Load settings
+            loadSettings();
+            
+            // Set default dates
+            setDefaultDates();
+        }
+
+        // Show login page
+        function showLoginPage() {
+            loginPage.style.display = 'flex';
+            registerPage.style.display = 'none';
+            mainContent.style.display = 'none';
+            sidebar.style.display = 'none';
+        }
+
+        // Show register page
+        function showRegisterPage() {
+            loginPage.style.display = 'none';
+            registerPage.style.display = 'flex';
+            mainContent.style.display = 'none';
+            sidebar.style.display = 'none';
+        }
+
+        // Show main application
+        function showMainApp() {
+            loginPage.style.display = 'none';
+            registerPage.style.display = 'none';
+            mainContent.style.display = 'block';
+            sidebar.style.display = 'block';
+            
+            // Load data
+            loadDashboardData();
+            loadBookings();
+            loadRooms();
+            loadCustomers();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Menu toggle for mobile
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+            });
+
+            // Menu links for switching sections
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    menuLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    link.classList.add('active');
+                    
+                    // Get section to show
+                    const section = link.getAttribute('data-section');
+                    
+                    // Update page title
+                    pageTitle.textContent = section.charAt(0).toUpperCase() + section.slice(1);
+                    
+                    // Hide all sections
+                    contentSections.forEach(sec => {
+                        sec.style.display = 'none';
+                    });
+                    
+                    // Show selected section
+                    document.getElementById(section).style.display = 'block';
+                    
+                    // If dashboard, refresh data
+                    if (section === 'dashboard') {
+                        loadDashboardData();
+                    }
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.remove('show');
+                    }
+                });
+            });
+
+            // Login/Register navigation
+            showRegister.addEventListener('click', (e) => {
+                e.preventDefault();
+                showRegisterPage();
+            });
+
+            showLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                showLoginPage();
+            });
+
+            // Login form
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleLogin();
+            });
+
+            // Register form
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleRegister();
+            });
+
+            // Booking form
+            bookingForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveBooking();
+            });
+
+            // Room form
+            roomForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveRoom();
+            });
+
+            // Customer form
+            customerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveCustomer();
+            });
+
+            // Report form
+            reportForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                generateReport();
+            });
+
+            // Settings form
+            settingsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveSettings();
+            });
+
+            // User form
+            userForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveUser();
+            });
+
+            // Report period change
+            reportPeriod.addEventListener('change', () => {
+                if (reportPeriod.value === 'custom') {
+                    customDateRange.style.display = 'block';
+                } else {
+                    customDateRange.style.display = 'none';
+                }
+            });
+
+            // Select all checkboxes
+            selectAllBookings.addEventListener('change', () => {
+                const checkboxes = bookingsTable.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllBookings.checked;
+                });
+                updateSelectedButtons('bookings');
+            });
+
+            selectAllRooms.addEventListener('change', () => {
+                const checkboxes = roomsTable.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllRooms.checked;
+                });
+                updateSelectedButtons('rooms');
+            });
+
+            selectAllCustomers.addEventListener('change', () => {
+                const checkboxes = customersTable.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCustomers.checked;
+                });
+                updateSelectedButtons('customers');
+            });
+
+            // Edit selected buttons
+            editSelectedBookings.addEventListener('click', () => {
+                editSelected('bookings');
+            });
+
+            editSelectedRooms.addEventListener('click', () => {
+                editSelected('rooms');
+            });
+
+            editSelectedCustomers.addEventListener('click', () => {
+                editSelected('customers');
+            });
+
+            // Delete selected buttons
+            deleteSelectedBookings.addEventListener('click', () => {
+                deleteSelected('bookings');
+            });
+
+            deleteSelectedRooms.addEventListener('click', () => {
+                deleteSelected('rooms');
+            });
+
+            deleteSelectedCustomers.addEventListener('click', () => {
+                deleteSelected('customers');
+            });
+
+            // Export buttons
+            exportExcelBookings.addEventListener('click', () => {
+                exportToExcel('bookings');
+            });
+
+            exportExcelRooms.addEventListener('click', () => {
+                exportToExcel('rooms');
+            });
+
+            exportExcelCustomers.addEventListener('click', () => {
+                exportToExcel('customers');
+            });
+
+            exportPdfBookings.addEventListener('click', () => {
+                exportToPdf('bookings');
+            });
+
+            exportPdfRooms.addEventListener('click', () => {
+                exportToPdf('rooms');
+            });
+
+            exportPdfCustomers.addEventListener('click', () => {
+                exportToPdf('customers');
+            });
+
+            exportSqlBookings.addEventListener('click', () => {
+                exportToSql('bookings');
+            });
+
+            exportSqlRooms.addEventListener('click', () => {
+                exportToSql('rooms');
+            });
+
+            exportSqlCustomers.addEventListener('click', () => {
+                exportToSql('customers');
+            });
+
+            exportExcelReport.addEventListener('click', () => {
+                exportReportToExcel();
+            });
+
+            exportPdfReport.addEventListener('click', () => {
+                exportReportToPdf();
+            });
+
+            // Modal buttons
+            closeEditModal.addEventListener('click', () => {
+                editModal.classList.remove('show');
+            });
+
+            cancelEdit.addEventListener('click', () => {
+                editModal.classList.remove('show');
+            });
+
+            saveEdit.addEventListener('click', () => {
+                saveEditedData();
+            });
+
+            // Window resize for sidebar
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('show');
+                }
+            });
+
+            // Input validation
+            setupValidation();
+        }
+
+        // Set up form validation
+        function setupValidation() {
+            // Email validation
+            const emailInputs = [customerEmail, userEmail, registerEmail, loginEmail];
+            emailInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.validity.typeMismatch) {
+                        input.classList.add('is-invalid');
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+            });
+
+            // Password confirmation
+            userConfirmPassword.addEventListener('input', () => {
+                if (userPassword.value !== userConfirmPassword.value) {
+                    userConfirmPassword.classList.add('is-invalid');
+                } else {
+                    userConfirmPassword.classList.remove('is-invalid');
+                }
+            });
+
+            registerConfirmPassword.addEventListener('input', () => {
+                if (registerPassword.value !== registerConfirmPassword.value) {
+                    registerConfirmPassword.classList.add('is-invalid');
+                } else {
+                    registerConfirmPassword.classList.remove('is-invalid');
+                }
+            });
+        }
+
+		// Add to the existing JavaScript code
+
+// Function to update the user display
+function updateUserDisplay() {
+    if (currentUser) {
+        document.getElementById('loggedInUserName').textContent = currentUser.name;
+        document.getElementById('loggedInUserRole').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+        
+        // Create initials for avatar
+        const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        document.getElementById('loggedInUserAvatar').textContent = initials;
+    }
+}
+
+// Function to handle logout
+function handleLogout() {
+    // Clear current user
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    
+    // Show login page
+    showLoginPage();
+    
+    // Reset forms
+    loginForm.reset();
+    registerForm.reset();
+    
+    showAlert('You have been logged out', 'success');
+}
+	
+// Add to the setupEventListeners function:
+document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        // Set default dates for forms
+        function setDefaultDates() {
+            const today = new Date();
+            const tomorrow = new Date();
+            tomorrow.setDate(today.getDate() + 1);
+            
+            // Format dates for input fields
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+            
+            // Set booking date to tomorrow by default
+            bookingDate.value = formatDate(tomorrow);
+            
+            // Set report dates
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            reportStartDate.value = formatDate(firstDay);
+            reportEndDate.value = formatDate(lastDay);
+        }
+
+        // Load settings
+        function loadSettings() {
+            restaurantName.value = db.settings.restaurantName;
+            restaurantAddress.value = db.settings.address;
+            restaurantPhone.value = db.settings.phone;
+            restaurantEmail.value = db.settings.email;
+            timezone.value = db.settings.timezone;
+            openTime.value = db.settings.openTime;
+            closeTime.value = db.settings.closeTime;
+        }
+
+        // Save settings
+        function saveSettings() {
+            db.settings = {
+                restaurantName: restaurantName.value,
+                address: restaurantAddress.value,
+                phone: restaurantPhone.value,
+                email: restaurantEmail.value,
+                timezone: timezone.value,
+                openTime: openTime.value,
+                closeTime: closeTime.value
+            };
+            
+            saveDatabase();
+            showAlert('Settings saved successfully!', 'success');
+        }
+
+        // Handle login
+        function handleLogin() {
+            const email = loginEmail.value;
+            const password = loginPassword.value;
+            
+            // Find user
+            const user = db.users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                // Update last login
+                user.lastLogin = new Date().toISOString();
+                saveDatabase();
+                
+                // Set current user
+                currentUser = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Show main app
+                showMainApp();
+                
+                // Reset form
+                loginForm.reset();
+            } else {
+                showAlert('Invalid email or password', 'danger');
+            }
+        }
+function showMainApp() {
+    loginPage.style.display = 'none';
+    registerPage.style.display = 'none';
+    mainContent.style.display = 'block';
+    sidebar.style.display = 'block';
+    
+    // Update user display
+    updateUserDisplay();
+    
+    // Load data
+    loadDashboardData();
+    loadBookings();
+    loadRooms();
+    loadCustomers();
+}
+function handleLogin() {
+    const email = loginEmail.value;
+    const password = loginPassword.value;
+    
+    // Find user
+    const user = db.users.find(u => u.email === email && u.password === password);
+    
+    if (user) {
+        // Update last login
+        user.lastLogin = new Date().toISOString();
+        saveDatabase();
+        
+        // Set current user
+        currentUser = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        // Show main app
+        showMainApp();
+        
+        // Update user display
+        updateUserDisplay();
+        
+        // Reset form
+        loginForm.reset();
+    } else {
+        showAlert('Invalid email or password', 'danger');
+    }
+}
+function handleRegister() {
+    const name = registerName.value;
+    const email = registerEmail.value;
+    const password = registerPassword.value;
+    const confirmPassword = registerConfirmPassword.value;
+    
+    // Check if passwords match
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match', 'danger');
+        return;
+    }
+    
+    // Check if email already exists
+    if (db.users.some(u => u.email === email)) {
+        showAlert('Email already registered', 'danger');
+        return;
+    }
+    
+    // Create new user
+    const newUser = {
+        id: db.nextIds.users++,
+        name: name,
+        email: email,
+        password: password,
+        role: 'staff',
+        lastLogin: new Date().toISOString()
+    };
+    
+    db.users.push(newUser);
+    saveDatabase();
+    
+    // Set current user
+    currentUser = {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Show main app
+    showMainApp();
+    
+    // Update user display
+    updateUserDisplay();
+    
+    // Reset form
+    registerForm.reset();
+    
+    showAlert('Registration successful!', 'success');
+}
+        // Handle register
+        function handleRegister() {
+            const name = registerName.value;
+            const email = registerEmail.value;
+            const password = registerPassword.value;
+            const confirmPassword = registerConfirmPassword.value;
+            
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match', 'danger');
+                return;
+            }
+            
+            // Check if email already exists
+            if (db.users.some(u => u.email === email)) {
+                showAlert('Email already registered', 'danger');
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                id: db.nextIds.users++,
+                name: name,
+                email: email,
+                password: password,
+                role: 'staff',
+                lastLogin: new Date().toISOString()
+            };
+            
+            db.users.push(newUser);
+            saveDatabase();
+            
+            // Set current user
+            currentUser = {
+                id: newUser.id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role
+            };
+            
+            // Save to localStorage
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // Show main app
+            showMainApp();
+            
+            // Reset form
+            registerForm.reset();
+            
+            showAlert('Registration successful!', 'success');
+        }
+
+        // Save user
+        function saveUser() {
+            const name = userFullName.value;
+            const email = userEmail.value;
+            const role = userRole.value;
+            const password = userPassword.value;
+            const confirmPassword = userConfirmPassword.value;
+            
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match', 'danger');
+                return;
+            }
+            
+            // Check if email already exists
+            if (db.users.some(u => u.email === email)) {
+                showAlert('Email already registered', 'danger');
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                id: db.nextIds.users++,
+                name: name,
+                email: email,
+                password: password,
+                role: role,
+                lastLogin: new Date().toISOString()
+            };
+            
+            db.users.push(newUser);
+            saveDatabase();
+            
+            // Reset form
+            userForm.reset();
+            
+            // Reload users table
+            loadUsersTable();
+            
+            showAlert('User added successfully!', 'success');
+        }
+
+        // Load dashboard data
+        function loadDashboardData() {
+            // Calculate stats
+            const totalBookings = db.bookings.length;
+            const availableRooms = db.rooms.filter(r => r.status === 'available').length;
+            const pendingBookings = db.bookings.filter(b => b.status === 'pending').length;
+            
+            // Calculate revenue (simple calculation for demo)
+            const revenue = db.bookings
+                .filter(b => b.status === 'confirmed')
+                .reduce((sum, booking) => {
+                    const room = db.rooms.find(r => r.id === booking.roomId);
+                    return sum + (room ? room.price : 0);
+                }, 0);
+            
+            // Update UI
+            totalBookingsEl.textContent = totalBookings;
+            availableRoomsEl.textContent = availableRooms;
+            totalRoomsEl.textContent = db.rooms.length;
+            pendingBookingsEl.textContent = pendingBookings;
+            totalRevenueEl.textContent = `$${revenue}`;
+            
+            // Load recent bookings
+            loadRecentBookings();
+            
+            // Initialize charts
+            initCharts();
+        }
+
+        // Load recent bookings
+        function loadRecentBookings() {
+            recentBookingsTable.innerHTML = '';
+            
+            // Get 5 most recent bookings
+            const recentBookings = [...db.bookings]
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+            
+            recentBookings.forEach(booking => {
+                const customer = db.customers.find(c => c.id === booking.customerId);
+                const room = db.rooms.find(r => r.id === booking.roomId);
+                
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${booking.id}</td>
+                    <td>${customer ? customer.name : 'Unknown'}</td>
+                    <td>${room ? room.name : 'Unknown'}</td>
+                    <td>${booking.date}</td>
+                    <td>${booking.time}</td>
+                    <td><span class="status-badge ${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editBooking(${booking.id})">Edit</button>
+                    </td>
+                `;
+                
+                recentBookingsTable.appendChild(row);
+            });
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Bookings by status chart
+            const bookingsCtx = document.getElementById('bookingsChart').getContext('2d');
+            
+            const bookingsByStatus = {
+                confirmed: db.bookings.filter(b => b.status === 'confirmed').length,
+                pending: db.bookings.filter(b => b.status === 'pending').length,
+                cancelled: db.bookings.filter(b => b.status === 'cancelled').length
+            };
+            
+            if (bookingsChart) {
+                bookingsChart.destroy();
+            }
+            
+            bookingsChart = new Chart(bookingsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Confirmed', 'Pending', 'Cancelled'],
+                    datasets: [{
+                        label: 'Bookings by Status',
+                        data: [bookingsByStatus.confirmed, bookingsByStatus.pending, bookingsByStatus.cancelled],
+                        backgroundColor: [
+                            'rgba(28, 200, 138, 0.7)',
+                            'rgba(246, 194, 62, 0.7)',
+                            'rgba(231, 74, 59, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(28, 200, 138, 1)',
+                            'rgba(246, 194, 62, 1)',
+                            'rgba(231, 74, 59, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Room occupancy chart
+            const roomsCtx = document.getElementById('roomsChart').getContext('2d');
+            
+            const roomTypes = [...new Set(db.rooms.map(r => r.type))];
+            const roomCounts = roomTypes.map(type => db.rooms.filter(r => r.type === type).length);
+            const availableCounts = roomTypes.map(type => 
+                db.rooms.filter(r => r.type === type && r.status === 'available').length
+            );
+            
+            if (roomsChart) {
+                roomsChart.destroy();
+            }
+            
+            roomsChart = new Chart(roomsCtx, {
+                type: 'pie',
+                data: {
+                    labels: roomTypes.map(t => t.charAt(0).toUpperCase() + t.slice(1)),
+                    datasets: [{
+                        label: 'Room Types',
+                        data: roomCounts,
+                        backgroundColor: [
+                            'rgba(78, 115, 223, 0.7)',
+                            'rgba(28, 200, 138, 0.7)',
+                            'rgba(246, 194, 62, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(78, 115, 223, 1)',
+                            'rgba(28, 200, 138, 1)',
+                            'rgba(246, 194, 62, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const type = roomTypes[context.dataIndex];
+                                    const total = roomCounts[context.dataIndex];
+                                    const available = availableCounts[context.dataIndex];
+                                    return `Available: ${available} / ${total}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load bookings
+        function loadBookings() {
+            bookingsTable.innerHTML = '';
+            
+            // Populate customer dropdown
+            bookingCustomer.innerHTML = '<option value="">Select Customer</option>';
+            db.customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = customer.name;
+                bookingCustomer.appendChild(option);
+            });
+            
+            // Populate room dropdown
+            bookingRoom.innerHTML = '<option value="">Select Room</option>';
+            db.rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.id;
+                option.textContent = `${room.name} (${room.type}, ${room.capacity} people)`;
+                bookingRoom.appendChild(option);
+            });
+            
+            // Add bookings to table
+            db.bookings.forEach(booking => {
+                const customer = db.customers.find(c => c.id === booking.customerId);
+                const room = db.rooms.find(r => r.id === booking.roomId);
+                
+                const row = document.createElement('tr');
+                row.dataset.id = booking.id;
+                
+                row.innerHTML = `
+                    <td class="checkbox-cell"><input type="checkbox" class="row-checkbox"></td>
+                    <td>${booking.id}</td>
+                    <td>${customer ? customer.name : 'Unknown'}</td>
+                    <td>${room ? room.name : 'Unknown'}</td>
+                    <td>${booking.date}</td>
+                    <td>${booking.time}</td>
+                    <td>${booking.guests}</td>
+                    <td><span class="status-badge ${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span></td>
+                    <td class="table-actions">
+                        <button class="btn btn-primary btn-sm" onclick="editBooking(${booking.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteBooking(${booking.id})">Delete</button>
+                    </td>
+                `;
+                
+                bookingsTable.appendChild(row);
+            });
+            
+            // Add event listeners to checkboxes
+            const checkboxes = bookingsTable.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    updateSelectedButtons('bookings');
+                });
+            });
+        }
+
+        // Save booking
+        function saveBooking() {
+            const customerId = parseInt(bookingCustomer.value);
+            const roomId = parseInt(bookingRoom.value);
+            const date = bookingDate.value;
+            const time = bookingTime.value;
+            const guests = parseInt(bookingGuests.value);
+            const status = bookingStatus.value;
+            
+            if (currentEditId) {
+                // Update existing booking
+                const bookingIndex = db.bookings.findIndex(b => b.id === currentEditId);
+                if (bookingIndex !== -1) {
+                    db.bookings[bookingIndex] = {
+                        ...db.bookings[bookingIndex],
+                        customerId,
+                        roomId,
+                        date,
+                        time,
+                        guests,
+                        status
+                    };
+                    
+                    saveDatabase();
+                    showAlert('Booking updated successfully!', 'success');
+                }
+            } else {
+                // Create new booking
+                const newBooking = {
+                    id: db.nextIds.bookings++,
+                    customerId,
+                    roomId,
+                    date,
+                    time,
+                    guests,
+                    status,
+                    createdAt: new Date().toISOString()
+                };
+                
+                db.bookings.push(newBooking);
+                saveDatabase();
+                showAlert('Booking created successfully!', 'success');
+            }
+            
+            // Reset form and reload data
+            bookingForm.reset();
+            currentEditId = null;
+            setDefaultDates();
+            loadBookings();
+            loadDashboardData();
+        }
+
+        // Edit booking
+        function editBooking(id) {
+            const booking = db.bookings.find(b => b.id === id);
+            if (!booking) return;
+            
+            currentEditId = id;
+            
+            // Fill form with booking data
+            bookingCustomer.value = booking.customerId;
+            bookingRoom.value = booking.roomId;
+            bookingDate.value = booking.date;
+            bookingTime.value = booking.time;
+            bookingGuests.value = booking.guests;
+            bookingStatus.value = booking.status;
+            
+            // Scroll to form
+            document.getElementById('bookingForm').scrollIntoView();
+        }
+
+        // Delete booking
+        function deleteBooking(id) {
+            if (confirm('Are you sure you want to delete this booking?')) {
+                db.bookings = db.bookings.filter(b => b.id !== id);
+                saveDatabase();
+                loadBookings();
+                loadDashboardData();
+                showAlert('Booking deleted successfully!', 'success');
+            }
+        }
+
+        // Load rooms
+        function loadRooms() {
+            roomsTable.innerHTML = '';
+            
+            db.rooms.forEach(room => {
+                const row = document.createElement('tr');
+                row.dataset.id = room.id;
+                
+                row.innerHTML = `
+                    <td class="checkbox-cell"><input type="checkbox" class="row-checkbox"></td>
+                    <td>${room.id}</td>
+                    <td>${room.name}</td>
+                    <td>${room.capacity}</td>
+                    <td>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</td>
+                    <td>$${room.price}/hr</td>
+                    <td><span class="status-badge ${room.status}">${room.status.charAt(0).toUpperCase() + room.status.slice(1)}</span></td>
+                    <td class="table-actions">
+                        <button class="btn btn-primary btn-sm" onclick="editRoom(${room.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteRoom(${room.id})">Delete</button>
+                    </td>
+                `;
+                
+                roomsTable.appendChild(row);
+            });
+            
+            // Add event listeners to checkboxes
+            const checkboxes = roomsTable.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    updateSelectedButtons('rooms');
+                });
+            });
+        }
+
+        // Save room
+        function saveRoom() {
+            const name = roomName.value;
+            const capacity = parseInt(roomCapacity.value);
+            const type = roomType.value;
+            const price = parseFloat(roomPrice.value);
+            const status = roomStatus.value;
+            
+            if (currentEditId) {
+                // Update existing room
+                const roomIndex = db.rooms.findIndex(r => r.id === currentEditId);
+                if (roomIndex !== -1) {
+                    db.rooms[roomIndex] = {
+                        ...db.rooms[roomIndex],
+                        name,
+                        capacity,
+                        type,
+                        price,
+                        status
+                    };
+                    
+                    saveDatabase();
+                    showAlert('Room updated successfully!', 'success');
+                }
+            } else {
+                // Create new room
+                const newRoom = {
+                    id: db.nextIds.rooms++,
+                    name,
+                    capacity,
+                    type,
+                    price,
+                    status
+                };
+                
+                db.rooms.push(newRoom);
+                saveDatabase();
+                showAlert('Room created successfully!', 'success');
+            }
+            
+            // Reset form and reload data
+            roomForm.reset();
+            currentEditId = null;
+            loadRooms();
+            loadBookings(); // Need to reload bookings to update room dropdown
+            loadDashboardData();
+        }
+
+        // Edit room
+        function editRoom(id) {
+            const room = db.rooms.find(r => r.id === id);
+            if (!room) return;
+            
+            currentEditId = id;
+            
+            // Fill form with room data
+            roomName.value = room.name;
+            roomCapacity.value = room.capacity;
+            roomType.value = room.type;
+            roomPrice.value = room.price;
+            roomStatus.value = room.status;
+            
+            // Scroll to form
+            document.getElementById('roomForm').scrollIntoView();
+        }
+
+        // Delete room
+        function deleteRoom(id) {
+            // Check if room has bookings
+            const hasBookings = db.bookings.some(b => b.roomId === id);
+            
+            if (hasBookings) {
+                showAlert('Cannot delete room with existing bookings', 'danger');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this room?')) {
+                db.rooms = db.rooms.filter(r => r.id !== id);
+                saveDatabase();
+                loadRooms();
+                loadBookings(); // Need to reload bookings to update room dropdown
+                loadDashboardData();
+                showAlert('Room deleted successfully!', 'success');
+            }
+        }
+
+        // Load customers
+        function loadCustomers() {
+            customersTable.innerHTML = '';
+            
+            db.customers.forEach(customer => {
+                const row = document.createElement('tr');
+                row.dataset.id = customer.id;
+                
+                row.innerHTML = `
+                    <td class="checkbox-cell"><input type="checkbox" class="row-checkbox"></td>
+                    <td>${customer.id}</td>
+                    <td>${customer.name}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.address || '-'}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-primary btn-sm" onclick="editCustomer(${customer.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.id})">Delete</button>
+                    </td>
+                `;
+                
+                customersTable.appendChild(row);
+            });
+            
+            // Add event listeners to checkboxes
+            const checkboxes = customersTable.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    updateSelectedButtons('customers');
+                });
+            });
+        }
+
+        // Save customer
+        function saveCustomer() {
+            const name = customerName.value;
+            const email = customerEmail.value;
+            const phone = customerPhone.value;
+            const address = customerAddress.value;
+            
+            if (currentEditId) {
+                // Update existing customer
+                const customerIndex = db.customers.findIndex(c => c.id === currentEditId);
+                if (customerIndex !== -1) {
+                    db.customers[customerIndex] = {
+                        ...db.customers[customerIndex],
+                        name,
+                        email,
+                        phone,
+                        address
+                    };
+                    
+                    saveDatabase();
+                    showAlert('Customer updated successfully!', 'success');
+                }
+            } else {
+                // Check if email already exists
+                if (db.customers.some(c => c.email === email)) {
+                    showAlert('Email already exists', 'danger');
+                    return;
+                }
+                
+                // Create new customer
+                const newCustomer = {
+                    id: db.nextIds.customers++,
+                    name,
+                    email,
+                    phone,
+                    address
+                };
+                
+                db.customers.push(newCustomer);
+                saveDatabase();
+                showAlert('Customer created successfully!', 'success');
+            }
+            
+            // Reset form and reload data
+            customerForm.reset();
+            currentEditId = null;
+            loadCustomers();
+            loadBookings(); // Need to reload bookings to update customer dropdown
+        }
+
+        // Edit customer
+        function editCustomer(id) {
+            const customer = db.customers.find(c => c.id === id);
+            if (!customer) return;
+            
+            currentEditId = id;
+            
+            // Fill form with customer data
+            customerName.value = customer.name;
+            customerEmail.value = customer.email;
+            customerPhone.value = customer.phone;
+            customerAddress.value = customer.address || '';
+            
+            // Scroll to form
+            document.getElementById('customerForm').scrollIntoView();
+        }
+
+        // Delete customer
+        function deleteCustomer(id) {
+            // Check if customer has bookings
+            const hasBookings = db.bookings.some(b => b.customerId === id);
+            
+            if (hasBookings) {
+                showAlert('Cannot delete customer with existing bookings', 'danger');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this customer?')) {
+                db.customers = db.customers.filter(c => c.id !== id);
+                saveDatabase();
+                loadCustomers();
+                loadBookings(); // Need to reload bookings to update customer dropdown
+                showAlert('Customer deleted successfully!', 'success');
+            }
+        }
+
+        // Load users table
+        function loadUsersTable() {
+            usersTable.innerHTML = '';
+            
+            db.users.forEach(user => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
+                    <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editUser(${user.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">Delete</button>
+                    </td>
+                `;
+                
+                usersTable.appendChild(row);
+            });
+        }
+
+        // Edit user
+        function editUser(id) {
+            const user = db.users.find(u => u.id === id);
+            if (!user) return;
+            
+            // Open modal with edit form
+            editModalTitle.textContent = 'Edit User';
+            
+            editModalBody.innerHTML = `
+                <form id="editUserForm">
+                    <div class="form-group">
+                        <label for="editUserName" class="form-label">Full Name</label>
+                        <input type="text" id="editUserName" class="form-control" value="${user.name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserEmail" class="form-label">Email</label>
+                        <input type="email" id="editUserEmail" class="form-control" value="${user.email}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserRole" class="form-label">Role</label>
+                        <select id="editUserRole" class="form-control" required>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrator</option>
+                            <option value="manager" ${user.role === 'manager' ? 'selected' : ''}>Manager</option>
+                            <option value="staff" ${user.role === 'staff' ? 'selected' : ''}>Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserPassword" class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" id="editUserPassword" class="form-control">
+                    </div>
+                </form>
+            `;
+            
+            currentEditId = id;
+            currentEditTable = 'users';
+            editModal.classList.add('show');
+        }
+
+        // Delete user
+        function deleteUser(id) {
+            // Can't delete current user
+            if (currentUser && currentUser.id === id) {
+                showAlert('You cannot delete your own account', 'danger');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this user?')) {
+                db.users = db.users.filter(u => u.id !== id);
+                saveDatabase();
+                loadUsersTable();
+                showAlert('User deleted successfully!', 'success');
+            }
+        }
+
+        // Generate report
+        function generateReport() {
+            const type = reportType.value;
+            const period = reportPeriod.value;
+            
+            let startDate, endDate;
+            
+            // Calculate date range based on period
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (period === 'custom') {
+                startDate = new Date(reportStartDate.value);
+                endDate = new Date(reportEndDate.value);
+            } else {
+                switch (period) {
+                    case 'today':
+                        startDate = new Date(today);
+                        endDate = new Date(today);
+                        break;
+                    case 'week':
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+                        endDate = new Date(today);
+                        endDate.setDate(today.getDate() + (6 - today.getDay())); // End of week (Saturday)
+                        break;
+                    case 'month':
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        break;
+                    case 'quarter':
+                        const quarter = Math.floor(today.getMonth() / 3);
+                        startDate = new Date(today.getFullYear(), quarter * 3, 1);
+                        endDate = new Date(today.getFullYear(), (quarter + 1) * 3, 0);
+                        break;
+                    case 'year':
+                        startDate = new Date(today.getFullYear(), 0, 1);
+                        endDate = new Date(today.getFullYear(), 11, 31);
+                        break;
+                }
+            }
+            
+            endDate.setHours(23, 59, 59, 999);
+            
+            // Generate report based on type
+            let reportHTML = `<h3>${type.charAt(0).toUpperCase() + type.slice(1)} Report</h3>`;
+            reportHTML += `<p>Period: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}</p>`;
+            
+            switch (type) {
+                case 'booking':
+                    // Booking report
+                    const bookingsInPeriod = db.bookings.filter(b => {
+                        const bookingDate = new Date(b.date);
+                        return bookingDate >= startDate && bookingDate <= endDate;
+                    });
+                    
+                    reportHTML += `<p>Total Bookings: ${bookingsInPeriod.length}</p>`;
+                    
+                    // Group by status
+                    const statusCounts = {
+                        confirmed: bookingsInPeriod.filter(b => b.status === 'confirmed').length,
+                        pending: bookingsInPeriod.filter(b => b.status === 'pending').length,
+                        cancelled: bookingsInPeriod.filter(b => b.status === 'cancelled').length
+                    };
+                    
+                    reportHTML += `
+                        <div style="margin: 20px 0;">
+                            <canvas id="reportBookingChart" height="200"></canvas>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Confirmed</td>
+                                    <td>${statusCounts.confirmed}</td>
+                                    <td>${Math.round(statusCounts.confirmed / bookingsInPeriod.length * 100)}%</td>
+                                </tr>
+                                <tr>
+                                    <td>Pending</td>
+                                    <td>${statusCounts.pending}</td>
+                                    <td>${Math.round(statusCounts.pending / bookingsInPeriod.length * 100)}%</td>
+                                </tr>
+                                <tr>
+                                    <td>Cancelled</td>
+                                    <td>${statusCounts.cancelled}</td>
+                                    <td>${Math.round(statusCounts.cancelled / bookingsInPeriod.length * 100)}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    // Add detailed bookings table
+                    reportHTML += `
+                        <h4 style="margin-top: 30px;">Booking Details</h4>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Room</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Guests</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    bookingsInPeriod.forEach(booking => {
+                        const customer = db.customers.find(c => c.id === booking.customerId);
+                        const room = db.rooms.find(r => r.id === booking.roomId);
+                        
+                        reportHTML += `
+                            <tr>
+                                <td>${booking.id}</td>
+                                <td>${customer ? customer.name : 'Unknown'}</td>
+                                <td>${room ? room.name : 'Unknown'}</td>
+                                <td>${booking.date}</td>
+                                <td>${booking.time}</td>
+                                <td>${booking.guests}</td>
+                                <td>${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    reportHTML += `</tbody></table>`;
+                    
+                    break;
+                    
+                case 'revenue':
+                    // Revenue report
+                    const confirmedBookings = db.bookings.filter(b => 
+                        b.status === 'confirmed' && 
+                        new Date(b.date) >= startDate && 
+                        new Date(b.date) <= endDate
+                    );
+                    
+                    const revenueByRoom = {};
+                    let totalRevenue = 0;
+                    
+                    confirmedBookings.forEach(booking => {
+                        const room = db.rooms.find(r => r.id === booking.roomId);
+                        if (room) {
+                            if (!revenueByRoom[room.id]) {
+                                revenueByRoom[room.id] = {
+                                    name: room.name,
+                                    type: room.type,
+                                    revenue: 0,
+                                    bookings: 0
+                                };
+                            }
+                            
+                            revenueByRoom[room.id].revenue += room.price;
+                            revenueByRoom[room.id].bookings += 1;
+                            totalRevenue += room.price;
+                        }
+                    });
+                    
+                    reportHTML += `<p>Total Revenue: $${totalRevenue.toFixed(2)}</p>`;
+                    
+                    // Revenue by room type
+                    const revenueByType = {};
+                    Object.values(revenueByRoom).forEach(room => {
+                        if (!revenueByType[room.type]) {
+                            revenueByType[room.type] = 0;
+                        }
+                        revenueByType[room.type] += room.revenue;
+                    });
+                    
+                    reportHTML += `
+                        <div style="margin: 20px 0;">
+                            <canvas id="reportRevenueChart" height="200"></canvas>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room Type</th>
+                                    <th>Revenue</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    Object.entries(revenueByType).forEach(([type, revenue]) => {
+                        reportHTML += `
+                            <tr>
+                                <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                                <td>$${revenue.toFixed(2)}</td>
+                                <td>${Math.round(revenue / totalRevenue * 100)}%</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    reportHTML += `</tbody></table>`;
+                    
+                    // Detailed revenue by room
+                    reportHTML += `
+                        <h4 style="margin-top: 30px;">Revenue by Room</h4>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Type</th>
+                                    <th>Bookings</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    Object.values(revenueByRoom).forEach(room => {
+                        reportHTML += `
+                            <tr>
+                                <td>${room.name}</td>
+                                <td>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</td>
+                                <td>${room.bookings}</td>
+                                <td>$${room.revenue.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    reportHTML += `</tbody></table>`;
+                    
+                    break;
+                    
+                case 'occupancy':
+                    // Room occupancy report
+                    const allBookings = db.bookings.filter(b => 
+                        new Date(b.date) >= startDate && 
+                        new Date(b.date) <= endDate
+                    );
+                    
+                    const roomOccupancy = {};
+                    db.rooms.forEach(room => {
+                        roomOccupancy[room.id] = {
+                            name: room.name,
+                            type: room.type,
+                            capacity: room.capacity,
+                            bookings: 0,
+                            hours: 0
+                        };
+                    });
+                    
+                    allBookings.forEach(booking => {
+                        if (roomOccupancy[booking.roomId]) {
+                            roomOccupancy[booking.roomId].bookings += 1;
+                            // Simple assumption: each booking is 2 hours
+                            roomOccupancy[booking.roomId].hours += 2;
+                        }
+                    });
+                    
+                    // Calculate total possible hours
+                    const daysInPeriod = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                    const openHoursPerDay = 12; // Assuming 12 open hours per day
+                    const totalPossibleHours = daysInPeriod * openHoursPerDay;
+                    
+                    reportHTML += `
+                        <p>Reporting Period: ${daysInPeriod} days (${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()})</p>
+                        <p>Total Possible Room Hours: ${totalPossibleHours * db.rooms.length}</p>
+                        <p>Total Booked Room Hours: ${Object.values(roomOccupancy).reduce((sum, room) => sum + room.hours, 0)}</p>
+                    `;
+                    
+                    // Occupancy by room type
+                    const occupancyByType = {};
+                    Object.values(roomOccupancy).forEach(room => {
+                        if (!occupancyByType[room.type]) {
+                            occupancyByType[room.type] = {
+                                rooms: 0,
+                                bookings: 0,
+                                hours: 0
+                            };
+                        }
+                        
+                        occupancyByType[room.type].rooms += 1;
+                        occupancyByType[room.type].bookings += room.bookings;
+                        occupancyByType[room.type].hours += room.hours;
+                    });
+                    
+                    reportHTML += `
+                        <div style="margin: 20px 0;">
+                            <canvas id="reportOccupancyChart" height="200"></canvas>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room Type</th>
+                                    <th>Rooms</th>
+                                    <th>Bookings</th>
+                                    <th>Hours Booked</th>
+                                    <th>Occupancy Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    Object.entries(occupancyByType).forEach(([type, data]) => {
+                        const possibleHours = totalPossibleHours * data.rooms;
+                        const occupancyRate = (data.hours / possibleHours) * 100;
+                        
+                        reportHTML += `
+                            <tr>
+                                <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                                <td>${data.rooms}</td>
+                                <td>${data.bookings}</td>
+                                <td>${data.hours}</td>
+                                <td>${occupancyRate.toFixed(1)}%</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    reportHTML += `</tbody></table>`;
+                    
+                    // Detailed room occupancy
+                    reportHTML += `
+                        <h4 style="margin-top: 30px;">Room Occupancy Details</h4>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Type</th>
+                                    <th>Capacity</th>
+                                    <th>Bookings</th>
+                                    <th>Hours Booked</th>
+                                    <th>Occupancy Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    Object.values(roomOccupancy).forEach(room => {
+                        const possibleHours = totalPossibleHours;
+                        const occupancyRate = (room.hours / possibleHours) * 100;
+                        
+                        reportHTML += `
+                            <tr>
+                                <td>${room.name}</td>
+                                <td>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</td>
+                                <td>${room.capacity}</td>
+                                <td>${room.bookings}</td>
+                                <td>${room.hours}</td>
+                                <td>${occupancyRate.toFixed(1)}%</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    reportHTML += `</tbody></table>`;
+                    
+                    break;
+                    
+                case 'customer':
+                    // Customer report
+                    const customerBookings = {};
+                    
+                    allBookings.forEach(booking => {
+                        if (!customerBookings[booking.customerId]) {
+                            customerBookings[booking.customerId] = 0;
+                        }
+                        customerBookings[booking.customerId] += 1;
+                    });
+                    
+                    // Get top customers
+                    const customerArray = Object.entries(customerBookings)
+                        .map(([customerId, count]) => ({
+                            customer: db.customers.find(c => c.id === parseInt(customerId)),
+                            bookings: count
+                        }))
+                        .filter(item => item.customer) // Filter out customers not found
+                        .sort((a, b) => b.bookings - a.bookings);
+                    
+                    reportHTML += `
+                        <p>Total Customers with Bookings: ${customerArray.length}</p>
+                        <div style="margin: 20px 0;">
+                            <canvas id="reportCustomerChart" height="200"></canvas>
+                        </div>
+                        <h4>Top Customers</h4>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Bookings</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    customerArray.slice(0, 10).forEach(item => {
+                        reportHTML += `
+                            <tr>
+                                <td>${item.customer.name}</td>
+                                <td>${item.customer.email}</td>
+                                <td>${item.customer.phone}</td>
+                                <td>${item.bookings}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    reportHTML += `</tbody></table>`;
+                    
+                    break;
+            }
+            
+            reportContent.innerHTML = reportHTML;
+            reportResults.style.display = 'block';
+            
+            // Initialize report charts
+            initReportCharts(type, startDate, endDate);
+        }
+
+        // Initialize report charts
+        function initReportCharts(type, startDate, endDate) {
+            switch (type) {
+                case 'booking':
+                    // Booking status chart
+                    const bookingsInPeriod = db.bookings.filter(b => {
+                        const bookingDate = new Date(b.date);
+                        return bookingDate >= startDate && bookingDate <= endDate;
+                    });
+                    
+                    const statusCounts = {
+                        confirmed: bookingsInPeriod.filter(b => b.status === 'confirmed').length,
+                        pending: bookingsInPeriod.filter(b => b.status === 'pending').length,
+                        cancelled: bookingsInPeriod.filter(b => b.status === 'cancelled').length
+                    };
+                    
+                    const bookingCtx = document.getElementById('reportBookingChart').getContext('2d');
+                    new Chart(bookingCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Confirmed', 'Pending', 'Cancelled'],
+                            datasets: [{
+                                data: [statusCounts.confirmed, statusCounts.pending, statusCounts.cancelled],
+                                backgroundColor: [
+                                    'rgba(28, 200, 138, 0.7)',
+                                    'rgba(246, 194, 62, 0.7)',
+                                    'rgba(231, 74, 59, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(28, 200, 138, 1)',
+                                    'rgba(246, 194, 62, 1)',
+                                    'rgba(231, 74, 59, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                }
+                            }
+                        }
+                    });
+                    
+                    break;
+                    
+                case 'revenue':
+                    // Revenue by room type chart
+                    const confirmedBookings = db.bookings.filter(b => 
+                        b.status === 'confirmed' && 
+                        new Date(b.date) >= startDate && 
+                        new Date(b.date) <= endDate
+                    );
+                    
+                    const revenueByType = {};
+                    confirmedBookings.forEach(booking => {
+                        const room = db.rooms.find(r => r.id === booking.roomId);
+                        if (room) {
+                            if (!revenueByType[room.type]) {
+                                revenueByType[room.type] = 0;
+                            }
+                            revenueByType[room.type] += room.price;
+                        }
+                    });
+                    
+                    const revenueCtx = document.getElementById('reportRevenueChart').getContext('2d');
+                    new Chart(revenueCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(revenueByType).map(t => t.charAt(0).toUpperCase() + t.slice(1)),
+                            datasets: [{
+                                data: Object.values(revenueByType),
+                                backgroundColor: [
+                                    'rgba(78, 115, 223, 0.7)',
+                                    'rgba(28, 200, 138, 0.7)',
+                                    'rgba(246, 194, 62, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(78, 115, 223, 1)',
+                                    'rgba(28, 200, 138, 1)',
+                                    'rgba(246, 194, 62, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                }
+                            }
+                        }
+                    });
+                    
+                    break;
+                    
+                case 'occupancy':
+                    // Room occupancy chart
+                    const allBookings = db.bookings.filter(b => 
+                        new Date(b.date) >= startDate && 
+                        new Date(b.date) <= endDate
+                    );
+                    
+                    const occupancyByType = {};
+                    db.rooms.forEach(room => {
+                        if (!occupancyByType[room.type]) {
+                            occupancyByType[room.type] = 0;
+                        }
+                    });
+                    
+                    allBookings.forEach(booking => {
+                        const room = db.rooms.find(r => r.id === booking.roomId);
+                        if (room) {
+                            // Simple assumption: each booking is 2 hours
+                            occupancyByType[room.type] += 2;
+                        }
+                    });
+                    
+                    // Calculate total possible hours
+                    const daysInPeriod = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                    const openHoursPerDay = 12; // Assuming 12 open hours per day
+                    
+                    // Calculate occupancy rate by type
+                    const occupancyData = {};
+                    Object.keys(occupancyByType).forEach(type => {
+                        const roomsOfType = db.rooms.filter(r => r.type === type).length;
+                        const possibleHours = daysInPeriod * openHoursPerDay * roomsOfType;
+                        const bookedHours = occupancyByType[type];
+                        occupancyData[type] = (bookedHours / possibleHours) * 100;
+                    });
+                    
+                    const occupancyCtx = document.getElementById('reportOccupancyChart').getContext('2d');
+                    new Chart(occupancyCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(occupancyData).map(t => t.charAt(0).toUpperCase() + t.slice(1)),
+                            datasets: [{
+                                label: 'Occupancy Rate (%)',
+                                data: Object.values(occupancyData),
+                                backgroundColor: 'rgba(78, 115, 223, 0.7)',
+                                borderColor: 'rgba(78, 115, 223, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Occupancy Rate (%)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                    
+                    break;
+                    
+                case 'customer':
+                    // Customer bookings chart
+                    const customerBookings = {};
+                    
+                    allBookings.forEach(booking => {
+                        if (!customerBookings[booking.customerId]) {
+                            customerBookings[booking.customerId] = 0;
+                        }
+                        customerBookings[booking.customerId] += 1;
+                    });
+                    
+                    // Get top 5 customers
+                    const topCustomers = Object.entries(customerBookings)
+                        .map(([customerId, count]) => ({
+                            customer: db.customers.find(c => c.id === parseInt(customerId)),
+                            bookings: count
+                        }))
+                        .filter(item => item.customer) // Filter out customers not found
+                        .sort((a, b) => b.bookings - a.bookings)
+                        .slice(0, 5);
+                    
+                    const customerCtx = document.getElementById('reportCustomerChart').getContext('2d');
+                    new Chart(customerCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: topCustomers.map(item => item.customer.name),
+                            datasets: [{
+                                label: 'Number of Bookings',
+                                data: topCustomers.map(item => item.bookings),
+                                backgroundColor: 'rgba(28, 200, 138, 0.7)',
+                                borderColor: 'rgba(28, 200, 138, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Bookings'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                    
+                    break;
+            }
+        }
+
+        // Update selected buttons state
+        function updateSelectedButtons(table) {
+            let checkboxes, editButton, deleteButton, selectAll;
+            
+            switch (table) {
+                case 'bookings':
+                    checkboxes = bookingsTable.querySelectorAll('.row-checkbox:checked');
+                    editButton = editSelectedBookings;
+                    deleteButton = deleteSelectedBookings;
+                    selectAll = selectAllBookings;
+                    break;
+                case 'rooms':
+                    checkboxes = roomsTable.querySelectorAll('.row-checkbox:checked');
+                    editButton = editSelectedRooms;
+                    deleteButton = deleteSelectedRooms;
+                    selectAll = selectAllRooms;
+                    break;
+                case 'customers':
+                    checkboxes = customersTable.querySelectorAll('.row-checkbox:checked');
+                    editButton = editSelectedCustomers;
+                    deleteButton = deleteSelectedCustomers;
+                    selectAll = selectAllCustomers;
+                    break;
+            }
+            
+            // Update buttons state
+            editButton.disabled = checkboxes.length !== 1;
+            deleteButton.disabled = checkboxes.length === 0;
+            
+            // Update select all checkbox
+            const allCheckboxes = bookingsTable.querySelectorAll('.row-checkbox');
+            selectAll.checked = checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+        }
+
+        // Edit selected row
+        function editSelected(table) {
+            let tableElement, editFunction;
+            
+            switch (table) {
+                case 'bookings':
+                    tableElement = bookingsTable;
+                    editFunction = editBooking;
+                    break;
+                case 'rooms':
+                    tableElement = roomsTable;
+                    editFunction = editRoom;
+                    break;
+                case 'customers':
+                    tableElement = customersTable;
+                    editFunction = editCustomer;
+                    break;
+            }
+            
+            // Find the checked row
+            const checkbox = tableElement.querySelector('.row-checkbox:checked');
+            if (checkbox) {
+                const row = checkbox.closest('tr');
+                const id = parseInt(row.dataset.id);
+                editFunction(id);
+            }
+        }
+
+        // Delete selected rows
+        function deleteSelected(table) {
+            let tableElement, deleteFunction, confirmMessage;
+            
+            switch (table) {
+                case 'bookings':
+                    tableElement = bookingsTable;
+                    deleteFunction = deleteBooking;
+                    confirmMessage = 'Are you sure you want to delete the selected bookings?';
+                    break;
+                case 'rooms':
+                    tableElement = roomsTable;
+                    deleteFunction = deleteRoom;
+                    confirmMessage = 'Are you sure you want to delete the selected rooms?';
+                    break;
+                case 'customers':
+                    tableElement = customersTable;
+                    deleteFunction = deleteCustomer;
+                    confirmMessage = 'Are you sure you want to delete the selected customers?';
+                    break;
+            }
+            
+            // Get all checked rows
+            const checkboxes = tableElement.querySelectorAll('.row-checkbox:checked');
+            if (checkboxes.length === 0) return;
+            
+            if (confirm(confirmMessage)) {
+                checkboxes.forEach(checkbox => {
+                    const row = checkbox.closest('tr');
+                    const id = parseInt(row.dataset.id);
+                    deleteFunction(id);
+                });
+                
+                // Reset select all checkbox
+                switch (table) {
+                    case 'bookings':
+                        selectAllBookings.checked = false;
+                        break;
+                    case 'rooms':
+                        selectAllRooms.checked = false;
+                        break;
+                    case 'customers':
+                        selectAllCustomers.checked = false;
+                        break;
+                }
+            }
+        }
+
+        // Save edited data from modal
+        function saveEditedData() {
+            if (currentEditTable === 'users') {
+                const userIndex = db.users.findIndex(u => u.id === currentEditId);
+                if (userIndex !== -1) {
+                    const name = document.getElementById('editUserName').value;
+                    const email = document.getElementById('editUserEmail').value;
+                    const role = document.getElementById('editUserRole').value;
+                    const password = document.getElementById('editUserPassword').value;
+                    
+                    // Check if email already exists (excluding current user)
+                    if (db.users.some(u => u.email === email && u.id !== currentEditId)) {
+                        showAlert('Email already exists', 'danger');
+                        return;
+                    }
+                    
+                    db.users[userIndex] = {
+                        ...db.users[userIndex],
+                        name,
+                        email,
+                        role
+                    };
+                    
+                    // Update password if provided
+                    if (password) {
+                        db.users[userIndex].password = password;
+                    }
+                    
+                    saveDatabase();
+                    loadUsersTable();
+                    showAlert('User updated successfully!', 'success');
+                }
+            }
+            
+            // Close modal
+            editModal.classList.remove('show');
+            currentEditId = null;
+            currentEditTable = null;
+        }
+
+        // Export to Excel
+        function exportToExcel(table) {
+            let data, fileName;
+            
+            switch (table) {
+                case 'bookings':
+                    data = db.bookings.map(booking => {
+                        const customer = db.customers.find(c => c.id === booking.customerId);
+                        const room = db.rooms.find(r => r.id === booking.roomId);
+                        
+                        return {
+                            ID: booking.id,
+                            Customer: customer ? customer.name : 'Unknown',
+                            Room: room ? room.name : 'Unknown',
+                            Date: booking.date,
+                            Time: booking.time,
+                            Guests: booking.guests,
+                            Status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
+                        };
+                    });
+                    fileName = 'bookings_export.xlsx';
+                    break;
+                    
+                case 'rooms':
+                    data = db.rooms.map(room => ({
+                        ID: room.id,
+                        Name: room.name,
+                        Capacity: room.capacity,
+                        Type: room.type.charAt(0).toUpperCase() + room.type.slice(1),
+                        Price: `$${room.price}`,
+                        Status: room.status.charAt(0).toUpperCase() + room.status.slice(1)
+                    }));
+                    fileName = 'rooms_export.xlsx';
+                    break;
+                    
+                case 'customers':
+                    data = db.customers.map(customer => ({
+                        ID: customer.id,
+                        Name: customer.name,
+                        Email: customer.email,
+                        Phone: customer.phone,
+                        Address: customer.address || '-'
+                    }));
+                    fileName = 'customers_export.xlsx';
+                    break;
+            }
+            
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(data);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            
+            // Export file
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Export report to Excel
+        function exportReportToExcel() {
+            const reportType = document.getElementById('reportType').value;
+            let fileName = `${reportType}_report.xlsx`;
+            
+            // Get HTML table from report content
+            const table = reportContent.querySelector('table');
+            if (!table) {
+                showAlert('No table data to export', 'warning');
+                return;
+            }
+            
+            // Convert HTML table to worksheet
+            const ws = XLSX.utils.table_to_sheet(table);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Report');
+            
+            // Export file
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Export to PDF
+        function exportToPdf(table) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            let title, headers, data;
+            
+            switch (table) {
+                case 'bookings':
+                    title = 'Bookings Export';
+                    headers = ['ID', 'Customer', 'Room', 'Date', 'Time', 'Guests', 'Status'];
+                    data = db.bookings.map(booking => {
+                        const customer = db.customers.find(c => c.id === booking.customerId);
+                        const room = db.rooms.find(r => r.id === booking.roomId);
+                        
+                        return [
+                            booking.id,
+                            customer ? customer.name : 'Unknown',
+                            room ? room.name : 'Unknown',
+                            booking.date,
+                            booking.time,
+                            booking.guests,
+                            booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
+                        ];
+                    });
+                    break;
+                    
+                case 'rooms':
+                    title = 'Rooms Export';
+                    headers = ['ID', 'Name', 'Capacity', 'Type', 'Price', 'Status'];
+                    data = db.rooms.map(room => [
+                        room.id,
+                        room.name,
+                        room.capacity,
+                        room.type.charAt(0).toUpperCase() + room.type.slice(1),
+                        `$${room.price}`,
+                        room.status.charAt(0).toUpperCase() + room.status.slice(1)
+                    ]);
+                    break;
+                    
+                case 'customers':
+                    title = 'Customers Export';
+                    headers = ['ID', 'Name', 'Email', 'Phone', 'Address'];
+                    data = db.customers.map(customer => [
+                        customer.id,
+                        customer.name,
+                        customer.email,
+                        customer.phone,
+                        customer.address || '-'
+                    ]);
+                    break;
+            }
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text(title, 14, 15);
+            
+            // Add table
+            doc.autoTable({
+                head: [headers],
+                body: data,
+                startY: 25,
+                styles: {
+                    fontSize: 8
+                },
+                headStyles: {
+                    fillColor: [78, 115, 223]
+                }
+            });
+            
+            // Save PDF
+            doc.save(`${title.toLowerCase().replace(' ', '_')}.pdf`);
+        }
+
+        // Export report to PDF
+        function exportReportToPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const reportType = document.getElementById('reportType').value;
+            const title = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`;
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text(title, 14, 15);
+            
+            // Get all text content
+            const textElements = reportContent.querySelectorAll('h3, h4, p');
+            let yPosition = 25;
+            
+            textElements.forEach(element => {
+                const tagName = element.tagName.toLowerCase();
+                const text = element.textContent;
+                
+                if (tagName === 'h3') {
+                    doc.setFontSize(14);
+                    doc.text(text, 14, yPosition);
+                    yPosition += 10;
+                } else if (tagName === 'h4') {
+                    doc.setFontSize(12);
+                    doc.text(text, 14, yPosition);
+                    yPosition += 8;
+                } else if (tagName === 'p') {
+                    doc.setFontSize(10);
+                    const lines = doc.splitTextToSize(text, 180);
+                    doc.text(lines, 14, yPosition);
+                    yPosition += lines.length * 7;
+                }
+                
+                // Add some space between elements
+                yPosition += 5;
+                
+                // Add new page if needed
+                if (yPosition > 280) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+            });
+            
+            // Add tables
+            const tables = reportContent.querySelectorAll('table');
+            tables.forEach((table, index) => {
+                // Add some space before table
+                yPosition += 10;
+                
+                // Check if we need a new page
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                // Convert table to data array
+                const headers = [];
+                const rows = [];
+                
+                // Get headers
+                const headerCells = table.querySelectorAll('thead th');
+                headerCells.forEach(cell => {
+                    headers.push(cell.textContent);
+                });
+                
+                // Get rows
+                const tableRows = table.querySelectorAll('tbody tr');
+                tableRows.forEach(row => {
+                    const rowData = [];
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach(cell => {
+                        rowData.push(cell.textContent);
+                    });
+                    rows.push(rowData);
+                });
+                
+                // Add table
+                doc.autoTable({
+                    head: [headers],
+                    body: rows,
+                    startY: yPosition,
+                    styles: {
+                        fontSize: 8
+                    },
+                    headStyles: {
+                        fillColor: [78, 115, 223]
+                    }
+                });
+                
+                // Update yPosition for next element
+                yPosition = doc.lastAutoTable.finalY + 10;
+            });
+            
+            // Save PDF
+            doc.save(`${title.toLowerCase().replace(' ', '_')}.pdf`);
+        }
+
+        // Export to SQL
+        function exportToSql(table) {
+            let sqlStatements = '';
+            let fileName = '';
+            
+            switch (table) {
+                case 'bookings':
+                    fileName = 'bookings_export.sql';
+                    db.bookings.forEach(booking => {
+                        sqlStatements += `INSERT INTO bookings (id, customer_id, room_id, date, time, guests, status, created_at) VALUES (${booking.id}, ${booking.customerId}, ${booking.roomId}, '${booking.date}', '${booking.time}', ${booking.guests}, '${booking.status}', '${booking.createdAt}');\n`;
+                    });
+                    break;
+                    
+                case 'rooms':
+                    fileName = 'rooms_export.sql';
+                    db.rooms.forEach(room => {
+                        sqlStatements += `INSERT INTO rooms (id, name, capacity, type, price, status) VALUES (${room.id}, '${room.name}', ${room.capacity}, '${room.type}', ${room.price}, '${room.status}');\n`;
+                    });
+                    break;
+                    
+                case 'customers':
+                    fileName = 'customers_export.sql';
+                    db.customers.forEach(customer => {
+                        const address = customer.address ? customer.address.replace(/'/g, "''") : '';
+                        sqlStatements += `INSERT INTO customers (id, name, email, phone, address) VALUES (${customer.id}, '${customer.name}', '${customer.email}', '${customer.phone}', '${address}');\n`;
+                    });
+                    break;
+            }
+            
+            // Create download link
+            const blob = new Blob([sqlStatements], { type: 'text/sql' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Save database to localStorage
+        function saveDatabase() {
+            localStorage.setItem('restaurantBookingDB', JSON.stringify(db));
+        }
+
+        // Show alert message
+        function showAlert(message, type) {
+            // Remove any existing alerts
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            // Style the alert
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.padding = '10px 20px';
+            alert.style.borderRadius = '4px';
+            alert.style.color = 'white';
+            alert.style.backgroundColor = type === 'success' ? 'var(--success-color)' : 
+                                         type === 'danger' ? 'var(--danger-color)' : 
+                                         type === 'warning' ? 'var(--warning-color)' : 'var(--primary-color)';
+            alert.style.boxShadow = '0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15)';
+            alert.style.zIndex = '9999';
+            alert.style.animation = 'fadeIn 0.3s';
+            
+            // Add to body
+            document.body.appendChild(alert);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                alert.style.animation = 'fadeOut 0.3s';
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }, 3000);
+            
+            // Add keyframes for animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; transform: translateY(0); }
+                    to { opacity: 0; transform: translateY(-20px); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
